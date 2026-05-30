@@ -34,9 +34,11 @@ def stage_proximity_mapper(observed_behaviors: list, structural_milestones: list
             f"MAPPING LOGS: Evaluated behaviors {observed_behaviors} against milestones {structural_milestones}.\n"
             f"Boundary Check: Suggested cognitive stage grouping mapped. WARNING: This is a proximity approximation mapping for care optimization. It is NOT a formal medical diagnosis.")
 
-st.set_page_config(page_title="CareCompanion Cognitive Agent",layout="wide")
+
+st.set_page_config(page_title="CareCompanion Cognitive Agent", layout="wide")
 st.title("CareCompanion AI")
 st.caption("Advanced Research-Stratified Agentic System for Alzheimer's Caregiving")
+
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
@@ -80,11 +82,13 @@ tools = [
 ]
 model_with_tools = llm.bind_tools(tools)
 
+
 for msg in st.session_state["messages"]:
     if isinstance(msg, HumanMessage):
         st.chat_message("user").write(msg.content)
     elif isinstance(msg, AIMessage) and msg.content:
         st.chat_message("assistant").write(msg.content)
+
 
 if user_input := st.chat_input("Input care scenario or behavior observation..."):
     st.chat_message("user").write(user_input)
@@ -94,9 +98,12 @@ if user_input := st.chat_input("Input care scenario or behavior observation...")
         with st.spinner("Processing Agentic Intent Routing..."):
             ai_response = model_with_tools.invoke(st.session_state["messages"])
             
+            # Agent Intent Processing: Checking for Tool Requests
             if ai_response.tool_calls:
                 st.session_state["messages"].append(ai_response)
+                tool_outputs_summary = []
                 
+              
                 for tool_call in ai_response.tool_calls:
                     name = tool_call["name"]
                     args = tool_call["args"]
@@ -104,6 +111,7 @@ if user_input := st.chat_input("Input care scenario or behavior observation...")
                     st.info(f" **Agent Decision (Procedural Knowledge Active):** Triggering Tool `{name}`")
                     st.json(args)
                     
+                    # Deterministic Step Matrix Mapping
                     if name == "emergency_id_generator":
                         tool_output = emergency_id_generator(**args)
                     elif name == "environmental_note_scheduler":
@@ -116,13 +124,16 @@ if user_input := st.chat_input("Input care scenario or behavior observation...")
                         tool_output = stage_proximity_mapper(**args)
                     
                     st.success(tool_output)
-                    
-                  
-                    st.session_state["messages"].append(HumanMessage(content=f"System Tool Result Context: {tool_output}"))
-                    
-                    final_response = model_with_tools.invoke(st.session_state["messages"])
-                    st.write(final_response.content)
-                    st.session_state["messages"].append(final_response)
+                    tool_outputs_summary.append(tool_output)
+                
+                
+                combined_context = "\n".join(tool_outputs_summary)
+                st.session_state["messages"].append(HumanMessage(content=f"System Tool Result Context:\n{combined_context}"))
+                
+                
+                final_response = model_with_tools.invoke(st.session_state["messages"])
+                st.write(final_response.content)
+                st.session_state["messages"].append(final_response)
             else:
                 st.write(ai_response.content)
                 st.session_state["messages"].append(ai_response)
