@@ -34,3 +34,59 @@ Open your computer's terminal or command prompt and type:
 ```bash
 git clone https://github.com/sajne511003-rgb/Alzheimers-CareCompanion-AI.git
 cd Alzheimers-CareCompanion-AI
+
+4. Run it on Hugging Face
+
+How to Host and Run This App on Hugging Face Spaces
+If you don't want to run the app on your local computer, you can easily link your GitHub files to Hugging Face Spaces to host it online for free.
+
+   Step 1: Create a New Space
+Go to huggingface.co and sign up for a free account (or log in).
+
+Click on your profile picture in the top right corner and click "New Space".
+
+Fill in these basic settings:
+
+Space Name: Choose a name (like Alzheimers-CareCompanion-AI).
+
+SDK: Click and select Streamlit.
+
+Space Hardware: Keep the default free "CPU Basic" option.
+
+Visibility: Choose Public (everyone can see it) or Private (only you can see it).
+
+Click the "Create Space" button at the bottom.
+
+   Step 2: Import Your Files Directly From GitHub
+Instead of uploading files manually, you can pull them instantly from your GitHub repository using Git:
+
+Open your computer's terminal or command prompt.
+
+Clone your Hugging Face Space repository locally by copying the command provided on your new blank Space page. It will look like this:
+
+Bash
+git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+cd YOUR_SPACE_NAME
+3. Copy the files (`app.py` or `src/streamlit_app.py` and `requirements.txt`) from your local GitHub folder into this new Space folder. 
+4. *Note: For Hugging Face to launch the interface automatically, make sure your main script file is named **`app.py`** and sits in the root (main) folder.*
+5. Save, commit, and push the files to Hugging Face by typing:
+   ```bash
+   git add .
+   git commit -m "Import files from GitHub repository"
+   git push
+
+   Step 3: Set Up Your Secret API Keys (Important!)
+Because CareCompanion AI connects to an external AI model, you need to securely give Hugging Face your private API keys:
+
+On your Hugging Face Space page, click on the "Settings" tab at the top.
+
+Scroll down to the "Variables and secrets" section and click "New secret".
+
+In the Name box, type the exact key your code looks for (for example: OPENAI_API_KEY or GEMINI_API_KEY).
+
+In the Value box, paste your actual secret API key string.
+
+Click "Save".
+
+   Step 4: Launch the App
+Go back to the "App" tab at the top of your Space page. Hugging Face will automatically read your requirements.txt file, install the necessary libraries, and start your Streamlit chatbot app. This setup process usually takes 1 to 2 minutes. Once the status bar turns green and says "Running," your online app is live and ready to use!
