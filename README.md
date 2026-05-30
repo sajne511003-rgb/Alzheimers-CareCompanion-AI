@@ -32,5 +32,5 @@ If you want to download our project and run it on your own computer, just follow
 Step 1: Clone (Download) the Project
 Open your computer's terminal or command prompt and type:
 ```bash
-git clone [https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git](https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git)
-cd YOUR_REPOSITORY_NAME
+git clone https://github.com/sajne511003-rgb/Alzheimers-CareCompanion-AI.git
+cd Alzheimers-CareCompanion-AI
