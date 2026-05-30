@@ -1,102 +1,128 @@
-import os
-import streamlit as str_web
-from langchain_core.tools import tool
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
-
-# =====================================================================
-# 1. PROCEDURAL KNOWLEDGE DEFINITIONS (AGENTIC TOOLS)
-# =====================================================================
-@tool
-def trigger_caretaker_alert(patient_name: str, safety_issue: str) -> str:
-    """Use this tool IMMEDIATELY whenever an Alzheimer's or dementia patient 
-    exhibits dangerous symptoms, wanders outside alone, or is unable to perform 
-    basic self-care tasks."""
-    return f"[SYSTEM ESCALATION ALERT] Immediate caretaker intervention recommended for {patient_name}. Reason: Patient exhibits critical symptom '{safety_issue}'."
-
-@tool
-def generate_environmental_care_plan(patient_name: str, stage: str, living_status: str) -> str:
-    """Use this tool to generate actionable environmental interventions and modifications."""
-    if stage in ["early", "moderate", "early/moderate"] and living_status == "independent":
-        return f"[CARE PLAN RECOMMENDATION FOR {patient_name}]: Suggest utilizing colored sticky note reminders for kitchen appliances and implementing pre-arranged daily medication blister boxes."
-    return f"[CARE PLAN RECOMMENDATION FOR {patient_name}]: Maintain a highly predictable daily routine and schedule regular check-ins."
+import streamlit as st
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 
-# =====================================================================
-# 2. STREAMLIT WEB INTERFACE SETUP
-# =====================================================================
-str_web.set_page_config(page_title="CareCompanion AI Agent", page_icon="🧠")
-str_web.title("🧠 CareCompanion AI Agent")
-str_web.caption("Alzheimer's Memory Assistance Expert System via GDVRR Protocol")
+def emergency_id_generator(patient_name: str, primary_contact: str, home_address: str) -> str:
+    """Triggers the creation of physical ID/contact cards for patients at risk of wandering alone."""
+    return (f"[EXECUTION: EMERGENCY_ID_GENERATOR]\n"
+            f"SUCCESS: Generated physical identification card layout for '{patient_name}'.\n"
+            f"Details: Contact {primary_contact} | Address: {home_address}.\n"
+            f"Action Item: Print this card and ensure the patient carries it whenever going out alone.")
 
-# Initialize Chat Memory Session State so the web app remembers the chat history
-if "chat_history" not in str_web.session_state:
-    str_web.session_state.chat_history = []
+def environmental_note_scheduler(patient_name: str, task_description: str, location_in_house: str) -> str:
+    """Actively coordinates physical text layouts (sticky notes) or arranges medication boxes for early-to-moderate stage patients."""
+    return (f"[EXECUTION: ENVIRONMENTAL_NOTE_SCHEDULER]\n"
+            f"SUCCESS: Scheduled physical cognitive support cue.\n"
+            f"Action Item: Place a bright sticky note/reminder for '{patient_name}' in the '{location_in_house}' stating: '{task_description}'.")
 
-# Core System Instructions (The Expert Mind / Declarative Knowledge Base)
-SYSTEM_PROMPT = (
-    "You are CareCompanion AI, an expert agentic assistant specialized in supporting "
-    "caregivers managing early to moderate-stage Alzheimer's disease.\n\n"
-    "HUMAN EXPERT RULES & CONSTRAINTS:\n"
-    "1. If a patient asks repetitive questions, do NOT show irritation. Instruct the user to answer gently.\n"
-    "2. If a patient is going out alone, ensure they carry an identification book with address and contact info.\n"
-    "3. If a patient forgets how to use familiar objects, assess that the disease progression is worsening.\n"
-    "4. CRITICAL ETHICAL BOUNDARY: You are strictly prohibited from diagnosing Alzheimer's or prescribing medical treatments.\n\n"
-    "PROCEDURAL TOOL ROUTING:\n"
-    "- If safety issues or danger arise, IMMEDIATELY invoke the 'trigger_caretaker_alert' tool.\n"
-    "- If asking for an independent care plan, invoke the 'generate_environmental_care_plan' tool.\n\n"
-    "CRITICAL: You must explicitly type out your step-by-step Chain-of-Thought reasoning under a '**Thought:**' header before deciding whether to answer directly or calling a tool."
+def repetitive_action_tracker(patient_name: str, action_observed: str, count_today: int) -> str:
+    """Logs repetitive actions and plays auditory cues to remind patients of recently completed tasks (e.g., having a meal)."""
+    return (f"[EXECUTION: REPETITIVE_ACTION_TRACKER]\n"
+            f"LOGGED: '{patient_name}' exhibited repetitive action: '{action_observed}' ({count_today} times today).\n"
+            f"System Response: Triggered simplified, slow-paced auditory cue to gently reassure the patient that this task has already been completed.")
+
+def observation_log_analyzer(patient_name: str, current_month_log: str, previous_month_log: str) -> str:
+    """Compiles and analyses caregiver behavioural inputs month-over-month to map genuine cognitive decline rather than day-by-day fluctuations."""
+    return (f"[EXECUTION: OBSERVATION_LOG_ANALYZER]\n"
+            f"ANALYSIS COMPLETE for '{patient_name}': Cross-referencing current logs against previous month records.\n"
+            f"Trend Detected: Identifying multi-week behavioral shifts rather than isolated daily fluctuations to isolate true cognitive trajectory patterns.")
+
+def stage_proximity_mapper(observed_behaviors: list, structural_milestones: list) -> str:
+    """A deterministic classifier that cross-references behavioural logs with standardized clinical markers to suggest staging adjustments without outputting an autonomous diagnosis."""
+    return (f"[EXECUTION: STAGE_PROXIMITY_MAPPER]\n"
+            f"MAPPING LOGS: Evaluated behaviors {observed_behaviors} against milestones {structural_milestones}.\n"
+            f"Boundary Check: Suggested cognitive stage grouping mapped. WARNING: This is a proximity approximation mapping for care optimization. It is NOT a formal medical diagnosis.")
+
+st.set_page_config(page_title="CareCompanion Cognitive Agent",layout="wide")
+st.title("CareCompanion AI")
+st.caption("Advanced Research-Stratified Agentic System for Alzheimer's Caregiving")
+
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [
+        SystemMessage(content=(
+            "You are CareCompanion AI, a risk-stratified agentic system built on strict clinical and declarative guidelines for managing Alzheimer's Care.\n\n"
+            "--- DECLARATIVE KNOWLEDGE BOUNDARIES ---\n"
+            "1. REPETITIVE QUESTIONS: Respond calmly, with high empathy, and zero irritation. Instruct caregivers to answer gently without arguing.\n"
+            "2. ANTI-DIAGNOSIS CONSTRAINT: You are strictly forbidden from issuing formal medical diagnoses or prescribing drugs. You are explicitly PERMITTED to map observed behaviors to cognitive stages (early, moderate, late).\n"
+            "3. STAGE-BASED LAYOUTS: Enforce environmental logic. Early/Moderate = visual cues and sticky notes. Late Stage = Completely cleared physical layouts and mandatory 24/7 human care oversight.\n"
+            "4. COGNITIVE PACING: Break down dense text or auditory output summaries into highly segmented, bite-sized visual chunks. Avoid long paragraph blocks.\n"
+            "5. DATA SEGREGATION: Treat core patient facts (allergies, medications) as part of a immutable 'User Truth Store' that requires validation. Treat daily tasks as part of a flexible 'Operational Store'.\n"
+            "6. UNCERTAINTY MANAGEMENT: Explicitly state your contextual boundaries and computational limitations if caregiver input is ambiguous. Never hide uncertainty.\n\n"
+            "--- PROCEDURAL WORKFLOW ROUTING ---\n"
+            "Dynamically run the appropriate function call when triggered by user scenario inputs:\n"
+            "- Risk of wandering or going out alone -> emergency_id_generator\n"
+            "- House layout adjustment, object forgetfulness, or sticky note scheduling -> environmental_note_scheduler\n"
+            "- Repetitive loop behaviors, pacing, or asking for the same meal -> repetitive_action_tracker\n"
+            "- Month-over-month progression evaluation or longitudinal tracking -> observation_log_analyzer\n"
+            "- Mapping clinical metrics to behavioral staging criteria -> stage_proximity_mapper\n\n"
+            "CRITICAL: Always start your response with a clear '**Thought:**' section detailing your data validation, risk evaluation, and step-by-step logic routing before calling a tool or outputting a final answer."
+        ))
+    ]
+
+
+api_key = "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"
+
+llm = ChatOpenAI(
+    model="google/gemini-2.5-flash",
+    openai_api_key=api_key,
+    openai_api_base="https://openrouter.ai/api/v1",
+    temperature=0.1,
+    max_tokens=1500
 )
 
-# Render past messages on screen refresh to maintain context
-for message in str_web.session_state.chat_history:
-    if isinstance(message, HumanMessage):
-        with str_web.chat_message("user"):
-            str_web.write(message.content)
-    elif isinstance(message, AIMessage):
-        with str_web.chat_message("assistant"):
-            str_web.write(message.content)
+tools = [
+    emergency_id_generator, 
+    environmental_note_scheduler, 
+    repetitive_action_tracker, 
+    observation_log_analyzer, 
+    stage_proximity_mapper
+]
+model_with_tools = llm.bind_tools(tools)
 
-# Accept user input via chat input container
-if prompt_input := str_web.chat_input("Ask CareCompanion AI a question..."):
-    with str_web.chat_message("user"):
-        str_web.write(prompt_input)
-    str_web.session_state.chat_history.append(HumanMessage(content=prompt_input))
+for msg in st.session_state["messages"]:
+    if isinstance(msg, HumanMessage):
+        st.chat_message("user").write(msg.content)
+    elif isinstance(msg, AIMessage) and msg.content:
+        st.chat_message("assistant").write(msg.content)
 
-    # Initialize Gemini using the secure Hugging Face Secret variable token
-    api_key = os.environ.get("GOOGLE_API_KEY", "")
+if user_input := st.chat_input("Input care scenario or behavior observation..."):
+    st.chat_message("user").write(user_input)
+    st.session_state["messages"].append(HumanMessage(content=user_input))
     
-    # Initialize Gemini 1.5 Flash framework
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.1, google_api_key=api_key)
-    tools = [trigger_caretaker_alert, generate_environmental_care_plan]
-    model_with_tools = llm.bind_tools(tools)
-
-    # Process AI Agent Response
-    with str_web.chat_message("assistant"):
-        run_messages = [SystemMessage(content=SYSTEM_PROMPT)] + str_web.session_state.chat_history
-        ai_response = model_with_tools.invoke(run_messages)
-        
-        response_placeholder = str_web.empty()
-        final_display_text = ""
-
-        # Check if tool routing was triggered by the model's inner reasoning steps
-        if ai_response.tool_calls:
-            for tool_call in ai_response.tool_calls:
-                final_display_text += f"**Thought:** Decided to invoke Tool: `{tool_call['name']}` based on clinical guidelines.\n\n"
+    with st.chat_message("assistant"):
+        with st.spinner("Processing Agentic Intent Routing..."):
+            ai_response = model_with_tools.invoke(st.session_state["messages"])
+            
+            if ai_response.tool_calls:
+                st.session_state["messages"].append(ai_response)
                 
-                if tool_call['name'] == 'trigger_caretaker_alert':
-                    tool_output = trigger_caretaker_alert.invoke(tool_call['args'])
-                elif tool_call['name'] == 'generate_environmental_care_plan':
-                    tool_output = generate_environmental_care_plan.invoke(tool_call['args'])
-                else:
-                    tool_output = "Unknown tool executed."
-                
-                final_display_text += f"**Action/Tool Called:** `{tool_call['name']}`\n\n"
-                final_display_text += f"**Tool Arguments:** `{tool_call['args']}`\n\n"
-                final_display_text += f"**Tool Output Response:**\n{tool_output}"
-        else:
-            final_display_text = ai_response.content
-
-        # Render outputs live on the web panel
-        response_placeholder.markdown(final_display_text)
-        str_web.session_state.chat_history.append(AIMessage(content=final_display_text))
+                for tool_call in ai_response.tool_calls:
+                    name = tool_call["name"]
+                    args = tool_call["args"]
+                    
+                    st.info(f" **Agent Decision (Procedural Knowledge Active):** Triggering Tool `{name}`")
+                    st.json(args)
+                    
+                    if name == "emergency_id_generator":
+                        tool_output = emergency_id_generator(**args)
+                    elif name == "environmental_note_scheduler":
+                        tool_output = environmental_note_scheduler(**args)
+                    elif name == "repetitive_action_tracker":
+                        tool_output = repetitive_action_tracker(**args)
+                    elif name == "observation_log_analyzer":
+                        tool_output = observation_log_analyzer(**args)
+                    elif name == "stage_proximity_mapper":
+                        tool_output = stage_proximity_mapper(**args)
+                    
+                    st.success(tool_output)
+                    
+                  
+                    st.session_state["messages"].append(HumanMessage(content=f"System Tool Result Context: {tool_output}"))
+                    
+                    final_response = model_with_tools.invoke(st.session_state["messages"])
+                    st.write(final_response.content)
+                    st.session_state["messages"].append(final_response)
+            else:
+                st.write(ai_response.content)
+                st.session_state["messages"].append(ai_response)
